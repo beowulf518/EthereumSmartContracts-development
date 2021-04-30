@@ -1,0 +1,50 @@
+{
+  "name": "@nomisma/nomisma-smart-contracts",
+  "version": "0.3.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "solhint": "node node_modules/.bin/solhint \"contracts/**/*.sol\"",
+    "eslint:tests": "node node_modules/.bin/eslint 'test/**/*.js*'",
+    "eslint:deployment-test": "node node_modules/.bin/eslint 'deployment-test/**/*.js*'",
+    "test:truffle": "node node_modules/.bin/truffle test",
+    "test:contract-size": "yarn truffle test ./deployment-test/ContractSizeDeploymentTest.js",
+    "test:coverage": "yarn solidity-coverage",
+    "test": "yarn lint && yarn test:truffle",
+    "lint": "yarn solhint && yarn eslint:tests && yarn eslint:deployment-test",
+    "build": "yarn webpack --mode=development --devtool source-map",
+    "postinstall": "yarn build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nomisma/nomisma-smart-contract-helpers": "0.4.0-dev.5",
+    "mathjs": "^5.0.2",
+    "openzeppelin-solidity": "2.2.0",
+    "truffle": "5.0.11",
+    "webpack": "^4.0.1",
+    "webpack-cli": "^3.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "7.1.0",
+    "@babel/plugin-transform-modules-commonjs": "7.0.0-rc.1",
+    "@babel/plugin-transform-runtime": "7.0.0-rc.1",
+    "@babel/polyfill": "7.0.0-rc.1",
+    "@babel/preset-env": "7.0.0-rc.1",
+    "@babel/register": "7.0.0-rc.1",
+    "@babel/runtime": "7.0.0-rc.1",
+    "@nomisma/eslint-config-shared": "^0.1.0-dev.5",
+    "babel-loader": "8.0.0-beta.0",
+    "bn-chai": "git+https://github.com/canufeel/bn-chai.git#feature/should-support",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^2.0.2",
+    "eslint": "^4.19.1",
+    "eslint-config-node-strict": "^0.0.2",
+    "eslint-loader": "^2.1.2",
+    "solhint": "1.5.0",
+    "solidity-coverage": "0.6.4",
+    "truffle-debugger": "^4.0.2",
+    "truffle-test-helpers": "0.1.0"
+  }
+}

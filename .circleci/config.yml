@@ -1,0 +1,92 @@
+defaults: &defaults
+  docker:
+    - image: circleci/node:10.14.1
+    
+version: 2
+jobs:
+  build:
+    context: read
+    <<: *defaults
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "2a:ce:76:7b:c1:f2:22:12:41:77:03:cd:78:00:cf:24"
+      - run:
+          name: setup npmrc
+          command: |
+            mv .circleci/npm/.npmrc .
+      - restore_cache:
+          key: v1-dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: yarn install
+          command: |
+            yarn install --no-optional --pure-lockfile
+      - save_cache:
+          key: v1-dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: yarn lint
+          command:
+            yarn lint
+      - run:
+          name: yarn contract-size
+          command: |
+            yarn test:contract-size
+      - run:
+          name: yarn coverage
+          command: |
+            yarn test:coverage
+      - run:
+          name: codecov
+          command: |
+            bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN} > /dev/null
+      # - store_artifacts:
+      #     path: coverage
+      #     destination: coverage
+      # - store_test_results:
+      #     path: coverage
+
+  release:
+    <<: *defaults
+
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          key: v1-dependency-cache-{{ checksum "yarn.lock" }}
+
+      - run:
+          name: release
+          command: |
+            git config user.email "bot@nomisma.one"
+            git config user.name "Nomisma Bot"
+            mv .circleci/npm/.npmrc .
+
+            yarn global add semver
+
+            last_version=$(git tag -l | sort -V | tail -1)
+            next_version=$(/home/circleci/.yarn/bin/semver ${last_version} -i prerelease --preid dev)
+            git tag -a v${next_version} -m ''
+            git push --quiet --tags https://${DEPLOY_GITHUB_TOKEN}@github.com/NomismaTech/${CIRCLE_PROJECT_REPONAME}.git
+
+            sed -i "s/\"version\": \".*\"/\"version\": \"${next_version}\"/" package.json
+
+            npm publish
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build:
+          context: read
+      - release:
+          context: write
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - development
